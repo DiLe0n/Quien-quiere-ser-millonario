@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>¿Quién quiere ser millonario?</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- ============ INICIO ============ -->
+  <section id="home" class="screen active">
+    <div class="logo">
+      <div class="logo-ring"></div>
+      <div class="logo-text">
+        <span class="logo-small">¿Quién quiere ser</span>
+        <span class="logo-big">MILLONARIO?</span>
+      </div>
+    </div>
+    <h2 id="home-title" class="home-title"></h2>
+    <div class="home-buttons">
+      <button class="btn btn-gold" id="btn-play">▶ Jugar</button>
+      <button class="btn" id="btn-editor">✎ Editar preguntas y premios</button>
+    </div>
+    <p class="home-hint" id="home-hint"></p>
+  </section>
+
+  <!-- ============ EDITOR ============ -->
+  <section id="editor" class="screen">
+    <header class="editor-top">
+      <button class="btn btn-small" id="ed-back">← Menú</button>
+      <h1>Editor del juego</h1>
+      <span class="saved" id="saved-flag">Guardado ✓</span>
+    </header>
+
+    <div class="editor-body">
+      <div class="panel config">
+        <label>Nombre del juego / evento
+          <input type="text" id="cfg-title" placeholder="Ej. Noche de trivia de la oficina">
+        </label>
+        <label>Símbolo de moneda
+          <input type="text" id="cfg-currency" maxlength="6" placeholder="$">
+        </label>
+        <label>Posición del símbolo
+          <select id="cfg-currency-pos">
+            <option value="before">Antes ($1,000)</option>
+            <option value="after">Después (1,000 €)</option>
+          </select>
+        </label>
+        <label class="chk"><input type="checkbox" id="cfg-shuffle"> Mezclar el orden de las respuestas al jugar</label>
+        <div class="time-all">
+          <label>Tiempo para todas las preguntas (segundos, 0 = sin límite)
+            <input type="number" id="cfg-time-all" min="0" step="1" value="60">
+          </label>
+          <button class="btn btn-small" id="ed-time-all">Aplicar a todas</button>
+        </div>
+      </div>
+
+      <div class="panel tools">
+        <button class="btn btn-small" id="ed-add">+ Agregar pregunta</button>
+        <button class="btn btn-small" id="ed-sort">Ordenar por premio</button>
+        <button class="btn btn-small" id="ed-export">⬇ Exportar (JSON)</button>
+        <label class="btn btn-small file-btn">⬆ Importar (JSON)
+          <input type="file" id="ed-import" accept=".json,application/json" hidden>
+        </label>
+        <button class="btn btn-small btn-danger" id="ed-reset">Restaurar ejemplo</button>
+        <button class="btn btn-small btn-gold" id="ed-play">▶ Probar juego</button>
+      </div>
+
+      <p class="editor-help">Cada tarjeta es un nivel (el 1 es el primero que se juega). Marca con el círculo la respuesta correcta.
+        El <b>tiempo</b> es en segundos (0 = sin límite); si se acaba, el jugador se lleva lo que tenía acumulado.
+        Los <b>niveles seguros</b> son los montos garantizados: si el jugador falla, se lleva el último nivel seguro que haya superado.
+        Todo se guarda automáticamente en este navegador; usa <b>Exportar</b> para respaldar o pasar tus preguntas a otra computadora.</p>
+
+      <div id="levels"></div>
+
+      <button class="btn add-bottom" id="ed-add-2">+ Agregar pregunta</button>
+    </div>
+  </section>
+
+  <!-- ============ JUEGO ============ -->
+  <section id="game" class="screen">
+    <div class="game-top">
+      <button class="btn btn-small" id="g-menu">☰ Menú</button>
+      <div class="lifelines">
+        <button class="lifeline" id="ll-fifty" title="50:50">50:50</button>
+        <button class="lifeline" id="ll-phone" title="Llamada a un amigo">📞</button>
+        <button class="lifeline" id="ll-audience" title="Ayuda del público">👥</button>
+      </div>
+      <div class="top-right">
+        <button class="btn btn-small icon" id="g-sound" title="Sonido">🔊</button>
+        <button class="btn btn-small icon" id="g-full" title="Pantalla completa">⛶</button>
+        <button class="btn btn-small ladder-toggle" id="g-ladder">Premios</button>
+      </div>
+    </div>
+
+    <div class="game-main">
+      <div class="stage">
+        <div class="stage-center">
+          <div class="mini-logo">
+            <span class="logo-small">¿Quién quiere ser</span>
+            <span class="logo-big">MILLONARIO?</span>
+          </div>
+
+          <div class="info-panel" id="info-panel" hidden></div>
+        </div>
+
+        <div class="board">
+          <div class="clock" id="clock" hidden>
+            <svg viewBox="0 0 100 100" aria-hidden="true">
+              <circle class="track" cx="50" cy="50" r="44"></circle>
+              <circle class="prog" id="clock-prog" cx="50" cy="50" r="44"></circle>
+            </svg>
+            <span id="clock-num"></span>
+          </div>
+          <div class="playing-for" id="playing-for"></div>
+          <div class="row q-row">
+            <div class="hex question"><div class="hex-in"><span id="q-text"></span></div></div>
+          </div>
+          <div class="answers">
+            <div class="row"><button class="hex answer" data-i="0"><div class="hex-in"><b>A:</b><span></span></div></button>
+                             <button class="hex answer" data-i="1"><div class="hex-in"><b>B:</b><span></span></div></button></div>
+            <div class="row"><button class="hex answer" data-i="2"><div class="hex-in"><b>C:</b><span></span></div></button>
+                             <button class="hex answer" data-i="3"><div class="hex-in"><b>D:</b><span></span></div></button></div>
+          </div>
+          <div class="game-actions">
+            <button class="btn btn-small" id="g-walk">Retirarse</button>
+          </div>
+        </div>
+      </div>
+
+      <aside class="ladder" id="ladder-wrap">
+        <ol id="ladder"></ol>
+      </aside>
+    </div>
+  </section>
+
+  <!-- ============ MODAL ============ -->
+  <div class="modal" id="modal" hidden>
+    <div class="modal-box">
+      <h2 id="modal-title"></h2>
+      <div id="modal-body"></div>
+      <div class="modal-buttons" id="modal-buttons"></div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast" hidden></div>
+
+  <!-- Plantilla de tarjeta de pregunta del editor -->
+  <template id="tpl-level">
+    <div class="level-card">
+      <div class="level-head">
+        <span class="level-num"></span>
+        <label class="prize-field">Premio
+          <input type="number" min="0" step="any" data-f="prize">
+        </label>
+        <label class="prize-field time-field">⏱ Tiempo (seg)
+          <input type="number" min="0" step="1" data-f="time" title="0 = sin límite">
+        </label>
+        <label class="chk"><input type="checkbox" data-f="safe"> Nivel seguro</label>
+        <div class="level-actions">
+          <button class="btn btn-small icon" data-act="up" title="Subir">▲</button>
+          <button class="btn btn-small icon" data-act="down" title="Bajar">▼</button>
+          <button class="btn btn-small icon btn-danger" data-act="del" title="Eliminar">✕</button>
+        </div>
+      </div>
+      <textarea data-f="q" rows="2" placeholder="Escribe aquí la pregunta…"></textarea>
+      <div class="answers-edit">
+        <label class="ans-edit"><input type="radio" data-f="correct" value="0"><b>A</b><input type="text" data-f="a0" placeholder="Respuesta A"></label>
+        <label class="ans-edit"><input type="radio" data-f="correct" value="1"><b>B</b><input type="text" data-f="a1" placeholder="Respuesta B"></label>
+        <label class="ans-edit"><input type="radio" data-f="correct" value="2"><b>C</b><input type="text" data-f="a2" placeholder="Respuesta C"></label>
+        <label class="ans-edit"><input type="radio" data-f="correct" value="3"><b>D</b><input type="text" data-f="a3" placeholder="Respuesta D"></label>
+      </div>
+    </div>
+  </template>
+
+  <script src="app.js"></script>
+</body>
+</html>
